@@ -1,0 +1,40 @@
+{
+  "name": "myplayer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --dir --mac --x64",
+    "open": "open dist/mac/myplayer.app",
+    "build-open": "electron-builder --dir --mac --x64 && open dist/mac/myplayer.app"
+  },
+  "dependencies": {
+    "@cliqz/adblocker-electron": "^1.20.2",
+    "cross-fetch": "^3.0.6"
+  },
+  "devDependencies": {
+    "electron": "^10.1.5",
+    "electron-builder": "^22.9.1"
+  },
+  "build": {
+    "appId": "local.cozy.myplayer",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      {
+        "from": "./assets",
+        "to": "./assets"
+      }
+    ],
+    "extraResources": [
+      "./assets/**"
+    ],
+    "mac": {
+      "target": "dmg",
+      "extendInfo": {}
+    }
+  }
+}
