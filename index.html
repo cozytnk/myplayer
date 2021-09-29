@@ -134,8 +134,8 @@ body:hover .panel:hover {
   opacity: 0;
   display: grid;
   grid-template:
-    "play seek   ...     speed" minmax(0, 1fr)
-    "play slider slider volume" minmax(0, 1fr)
+    "play seek    ...     speed" minmax(0, 1fr)
+    "play seekbar seekbar volume" minmax(0, 1fr)
     / auto auto minmax(0, 1fr) 100px;
   gap: 3px 10px;
   align-items: center;
@@ -149,7 +149,7 @@ body:hover .controls {
 body:hover .controls:hover {
   opacity: 0.9;
 }
-.seek-block, .slider-block, .volume-block, .speed-block {
+.seek-block, .seekbar-block, .volume-block, .speed-block {
   display: flex;
   align-items: center;
 }
@@ -162,8 +162,8 @@ body:hover .controls:hover {
   opacity: 0;
   transition: .3s ease;
 }
-.move-win-to-right { right: 0; }
-.move-win-to-left { left: 0; }
+.move-win-to-right { right: 0; border-radius: 4px 0 0 4px; }
+.move-win-to-left { left: 0; border-radius: 0 4px 4px 0; }
 .move-win:hover {
   opacity: 1;
 }
@@ -176,6 +176,25 @@ select {
   font-size: 12px;
   padding: 0 6px;
   border-radius: 4px;
+}
+
+.seekbar-hover-item {
+  position: fixed;
+  width: 160px; height: 90px;
+  border-radius: 4px;
+  background-color: #000;
+  border: 1px solid #444;
+}
+.seekbar-hover-item > video {
+  width: 100%; height: 100%;
+  object-fit: contain;
+}
+.seekbar-hover-item > span {
+  position: absolute; left: 0; bottom: 0;
+  width: 100%;
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 0 10px #000;
 }
 </style>
 </head>
@@ -337,9 +356,9 @@ select {
       <div class="material-icons" style="font-size: 18px; font-weight: bold; transform: scaleX(-1);" @click="forward()">replay</div>
       <div class="material-icons" style="font-size: 22px;" @click="currentTime = duration">skip_next</div>
     </div>
-    <div class="slider-block" style="grid-area: slider; font-size: 12px;">
+    <div class="seekbar-block" style="grid-area: seekbar; font-size: 12px;">
       <span>{{ currentTime_hhmmss }}</span>
-      <input type="range" onfocus="this.blur()" style="flex: 1;" step=".01" min="0" :max.number="duration" v-model="currentTime">
+      <input type="range" onfocus="this.blur()" style="flex: 1;" step=".01" min="0" :max.number="duration" v-model="currentTime" @mousemove="onmousemoveOnSeekbar" @mouseleave="onmouseleaveFromSeekbar">
       <span>{{ remainingTime_hhmmss }}</span>
     </div>
     <div class="volume-block" style="grid-area: volume;">
@@ -369,6 +388,17 @@ select {
   </div>
   <div class="move-win move-win-to-left" @click="MoveWindowToLeft">
     <span class="material-icons" style="font-size: 40px;">arrow_left</span>
+  </div>
+
+  <div class="seekbar-hover-item" v-show="showsSeekbarHoverItem">
+    <video
+      :src="activeItem && encodeURI(activeItem?.filepath).replace('#', '%23')"
+      @loadstart="$event.target.loaded = false"
+      @loadeddata="$event.target.loaded = true"
+      @error="$event.target.loaded = false"
+      muted
+    ></video>
+    <span>hhmmss</span>
   </div>
 
 </div>
@@ -420,6 +450,8 @@ const app = new Vue({
       loop: 0, // 0: no loop, 1: loop list, 2: loop one
       loading: false,
       skipSeconds: 10,
+      //
+      showsSeekbarHoverItem: false,
     }
   },
   computed: {
@@ -573,6 +605,19 @@ const app = new Vue({
         // do nothing
       }
     },
+    //
+    onmousemoveOnSeekbar (event) {
+      const { left, top, right, bottom, x, y, width, height } = event.target.getBoundingClientRect()
+      const { clientX: mouseX, clientY: mouseY } = event
+      const seekbarHoverItem = document.querySelector('.seekbar-hover-item')
+      seekbarHoverItem.style.left = mouseX - 80
+      seekbarHoverItem.style.top = top - 90 - 10
+      const video = seekbarHoverItem.querySelector('video')
+      if (video.loaded) video.currentTime = video.duration * (mouseX - left) / width
+      seekbarHoverItem.querySelector('span').textContent = this.toHHMMSS(video.currentTime)
+      this.showsSeekbarHoverItem = true
+    },
+    onmouseleaveFromSeekbar (event) { this.showsSeekbarHoverItem = false },
     //
     MaximizeWindow () { ipcRenderer?.send?.('win.toggleMaximized') },
     HideWindow () { ipcRenderer?.send?.('win.hide') },

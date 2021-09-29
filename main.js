@@ -150,6 +150,14 @@ const createMenu = (win) => {
   const menu = new Menu()
 
   menu.append(new MenuItem({
+    label: '50% width',
+    click: () => {
+      const { x, y, width, height } = win.getBounds()
+      const { x: displayX, y: displayY, width: displayWidth, height: displayHeight } = screen.getDisplayNearestPoint({ x, y }).workArea
+      win.setSize(Math.round(displayWidth / 2), Math.round(height * (displayWidth / 2) / width), true)
+    },
+  }))
+  menu.append(new MenuItem({
     type: 'checkbox',
     checked: win.isFullScreen(),
     // accelerator: 'Cmd+F',
