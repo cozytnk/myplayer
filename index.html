@@ -24,9 +24,9 @@ body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
 }
 
 .video-container {
+  position: fixed; top: 0; left: 0;
   width: 100%; height: 100%;
   background-color: #000;
-  position: relative;
 }
 .video-container > * {
   position: absolute; top: 0; left: 0;
@@ -38,7 +38,7 @@ body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
 }
 
 .header {
-  position: absolute; top: -5px; right: 0;
+  position: fixed; top: -5px; right: 0;
   width: 100%; height: var(--header-height);
   background-color: #000;
   opacity: 0;
@@ -58,7 +58,7 @@ body:hover .header:hover {
 }
 
 .panel {
-  position: absolute; top: var(--header-height); right: -50%;
+  position: fixed; top: var(--header-height); right: -50%;
   width: 50%;
   height: calc(100% - var(--header-height) - var(--controls-height));
   border-radius: 8px 0 0 8px;
@@ -128,7 +128,7 @@ body:hover .panel:hover {
 }
 
 .controls {
-  position: absolute; bottom: -5px; left: 0;
+  position: fixed; bottom: -5px; left: 0;
   width: 100%; height: var(--controls-height);
   background-color: #000;
   opacity: 0;
@@ -154,19 +154,35 @@ body:hover .controls:hover {
   align-items: center;
 }
 
+.message {
+  position: fixed; top: var(--header-height); left: 0;
+  padding: 10px 10px 10px 20px;
+  background-color: #000;
+  border-radius: 0 4px 4px 0;
+  font-size: 16px;
+  opacity: 0;
+  transition: opacity 1s;
+}
+.message.visible {
+  opacity: 1;
+  transition: opacity 0s;
+}
+
 .move-win {
-  position: absolute;
-  top: calc(50% - 20px);
-  height: 40px;
+  position: fixed; top: 50%; left: 25%; transform: translate(-50%, -50%);
+  padding: 5px;
+  border-radius: 10px;
+  display: grid;
+  grid-template:
+    "... t ..."
+    " l  e  r "
+    "... b ...";
   background-color: #000;
   opacity: 0;
   transition: .3s ease;
 }
-.move-win-to-right { right: 0; border-radius: 4px 0 0 4px; }
-.move-win-to-left { left: 0; border-radius: 0 4px 4px 0; }
-.move-win:hover {
-  opacity: 1;
-}
+.move-win:hover { opacity: 0.9; }
+.move-win > span:hover { background-color: #444; border-radius: 5px; }
 
 select {
   background-color: #444;
@@ -244,7 +260,7 @@ select {
     <span class="material-icons" style="font-size: 18px;" @click="HideWindow">visibility_off</span>
   </div>
 
-  <!-- <div class="message"></div> -->
+  <div class="message" :class="{ visible: showsMessage }">aaa</div>
 
   <div class="panel" :class="{ open: activePanel && true }">
 
@@ -383,11 +399,19 @@ select {
     </div>
   </div>
 
-  <div class="move-win move-win-to-right" @click="MoveWindowToRight">
+  <!-- <div class="move-win move-win-to-right" @click="MoveWindowToRight">
     <span class="material-icons" style="font-size: 40px;">arrow_right</span>
   </div>
   <div class="move-win move-win-to-left" @click="MoveWindowToLeft">
     <span class="material-icons" style="font-size: 40px;">arrow_left</span>
+  </div> -->
+
+  <div class="move-win">
+    <span class="material-icons" style="grid-area: t; font-size: 30px;" @click="MoveWindowToTop">arrow_drop_up</span>
+    <span class="material-icons" style="grid-area: b; font-size: 30px;" @click="MoveWindowToBottom">arrow_drop_down</span>
+    <span class="material-icons" style="grid-area: l; font-size: 30px;" @click="MoveWindowToLeft">arrow_left</span>
+    <span class="material-icons" style="grid-area: r; font-size: 30px;" @click="MoveWindowToRight">arrow_right</span>
+    <span class="material-icons" style="grid-area: e; font-size: 30px; transform: rotate(90deg);" @click="SetWindowWidth">expand</span>
   </div>
 
   <div class="seekbar-hover-item" v-show="showsSeekbarHoverItem">
@@ -451,6 +475,7 @@ const app = new Vue({
       loading: false,
       skipSeconds: 10,
       //
+      showsMessage: false,
       showsSeekbarHoverItem: false,
     }
   },
@@ -552,6 +577,11 @@ const app = new Vue({
     log: console.log,
     alert: window.alert,
     toHHMMSS: seconds => new Date(0, 0, 0, 0, 0, seconds).toTimeString().split(' ')[0].replace(/^00:/, ''),
+    showMessage (message) {
+      document.querySelector('.message').innerHTML = message
+      this.showsMessage = true
+      setTimeout(() => this.showsMessage = false, 100)
+    },
     //
     switchPanel (panelId) {
       if (this.activePanel === panelId) this.activePanel = null
@@ -572,15 +602,16 @@ const app = new Vue({
         await new Promise(resolve => setTimeout(resolve, 100))
         //
         this.settings = { ..._settings, ...window.settings}
+        alert('Settings loaded.')
       }
     },
     //
-    play () { document.querySelector('video').play() },
-    pause () { document.querySelector('video').pause() },
+    play () { document.querySelector('video').play(); this.showMessage('Play') },
+    pause () { document.querySelector('video').pause(); this.showMessage('Pause') },
     forward () { this.currentTime = Math.min(this.duration, this.currentTime + this.skipSeconds) },
     backward () { this.currentTime = Math.max(this.currentTime - this.skipSeconds, 0) },
-    volumeUp () { this.volume = Math.min(1.0, this.volume + 0.1) },
-    volumeDown () { this.volume = Math.max(0.0, this.volume - 0.1) },
+    volumeUp () { this.volume = Math.min(1.0, this.volume + 0.1); this.showMessage(`Volume ${this.volume.toFixed(1)}`) },
+    volumeDown () { this.volume = Math.max(0.0, this.volume - 0.1); this.showMessage(`Volume ${this.volume.toFixed(1)}`) },
     toNext () {
       const i = this.items.findIndex(item => item.id === this.activeItemId)
       if (this.loop === 2) {
@@ -623,6 +654,9 @@ const app = new Vue({
     HideWindow () { ipcRenderer?.send?.('win.hide') },
     MoveWindowToRight () { ipcRenderer?.send?.('win.toRight') },
     MoveWindowToLeft () { ipcRenderer?.send?.('win.toLeft') },
+    MoveWindowToTop () { ipcRenderer?.send?.('win.toTop') },
+    MoveWindowToBottom () { ipcRenderer?.send?.('win.toBottom') },
+    SetWindowWidth () { ipcRenderer?.send?.('win.setWidth') },
     //
     addActiveItemToQueue () {
       const queueItem = {

@@ -150,14 +150,6 @@ const createMenu = (win) => {
   const menu = new Menu()
 
   menu.append(new MenuItem({
-    label: '50% width',
-    click: () => {
-      const { x, y, width, height } = win.getBounds()
-      const { x: displayX, y: displayY, width: displayWidth, height: displayHeight } = screen.getDisplayNearestPoint({ x, y }).workArea
-      win.setSize(Math.round(displayWidth / 2), Math.round(height * (displayWidth / 2) / width), true)
-    },
-  }))
-  menu.append(new MenuItem({
     type: 'checkbox',
     checked: win.isFullScreen(),
     // accelerator: 'Cmd+F',
@@ -232,12 +224,27 @@ app.on('ready', () => {
     .on('win.toRight', () => {
       const { x, y, width, height } = win.getBounds()
       const { x: displayX, y: displayY, width: displayWidth, height: displayHeight } = screen.getDisplayNearestPoint({ x, y }).workArea
-      win.setBounds({ x: displayX + displayWidth - width, y, width, height })
+      win.setBounds({ x: displayX + displayWidth - width, y, width, height }, true)
     })
     .on('win.toLeft', () => {
       const { x, y, width, height } = win.getBounds()
       const { x: displayX, y: displayY, width: displayWidth, height: displayHeight } = screen.getDisplayNearestPoint({ x, y }).workArea
-      win.setBounds({ x: displayX, y, width, height })
+      win.setBounds({ x: displayX, y, width, height }, true)
+    })
+    .on('win.toTop', () => {
+      const { x, y, width, height } = win.getBounds()
+      const { x: displayX, y: displayY, width: displayWidth, height: displayHeight } = screen.getDisplayNearestPoint({ x, y }).workArea
+      win.setBounds({ x, y: displayY, width, height }, true)
+    })
+    .on('win.toBottom', () => {
+      const { x, y, width, height } = win.getBounds()
+      const { x: displayX, y: displayY, width: displayWidth, height: displayHeight } = screen.getDisplayNearestPoint({ x, y }).workArea
+      win.setBounds({ x, y: displayY + displayHeight - height, width, height }, true)
+    })
+    .on('win.setWidth', () => {
+      const { x, y, width, height } = win.getBounds()
+      const { x: displayX, y: displayY, width: displayWidth, height: displayHeight } = screen.getDisplayNearestPoint({ x, y }).workArea
+      win.setSize(Math.round(displayWidth / 2), Math.round(height * (displayWidth / 2) / width), true)
     })
 
   tray.on('click', () => win.isVisible() ? win.hide() : win.show())
