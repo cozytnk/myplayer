@@ -222,7 +222,7 @@ select {
     @mousedown="timeStamp_ = $event.timeStamp"
     @click="if ($event.timeStamp - timeStamp_  < 200) switchPanel(null); else timeStamp_ = null; log($event.timeStamp - timeStamp_)"
   >
-    <video
+    <video id="video"
       :src="activeItem && encodeURI(activeItem?.filepath).replace('#', '%23')"
       @timeupdate="currentTime_ = $event.target.currentTime"
       @volumechange="volume_ = $event.target.volume"
@@ -399,13 +399,6 @@ select {
     </div>
   </div>
 
-  <!-- <div class="move-win move-win-to-right" @click="MoveWindowToRight">
-    <span class="material-icons" style="font-size: 40px;">arrow_right</span>
-  </div>
-  <div class="move-win move-win-to-left" @click="MoveWindowToLeft">
-    <span class="material-icons" style="font-size: 40px;">arrow_left</span>
-  </div> -->
-
   <div class="move-win">
     <span class="material-icons" style="grid-area: t; font-size: 30px;" @click="MoveWindowToTop">arrow_drop_up</span>
     <span class="material-icons" style="grid-area: b; font-size: 30px;" @click="MoveWindowToBottom">arrow_drop_down</span>
@@ -520,36 +513,36 @@ const app = new Vue({
     currentTime: {
       // [<video v-model="currentTime"/> · Issue #10542](https://github.com/vuejs/vue/issues/10542)
       get () { return this.currentTime_ },
-      // set (newValue) { document.querySelector('video').currentTime = newValue },
       set (newValue) {
-        const paused = this.paused
-        document.querySelector('video').currentTime = newValue
-        paused && this.pause()
+        const video = document.querySelector('#video')
+        const paused = video.paused
+        video.currentTime = newValue
+        paused && video.pause()
       },
     },
     volume: {
       get () { return this.volume_ },
-      set (newValue) { document.querySelector('video').volume = newValue },
+      set (newValue) { document.querySelector('#video').volume = newValue },
     },
     playbackRate: {
       cache: false,
-      get () { return document.querySelector('video').playbackRate },
-      set (newValue) { document.querySelector('video').playbackRate = newValue },
+      get () { return document.querySelector('#video').playbackRate },
+      set (newValue) { document.querySelector('#video').playbackRate = newValue },
     },
     paused: {
       cache: false,
-      get () { return document.querySelector('video').paused },
+      get () { return document.querySelector('#video').paused },
     },
     currentTime_hhmmss () { return this.toHHMMSS(this.currentTime) },
     remainingTime_hhmmss () { return this.toHHMMSS(this.duration - this.currentTime) },
     duration_hhmmss () { return this.toHHMMSS(this.duration) },
     videoWidth: {
       cache: false,
-      get () { return document.querySelector('video').videoWidth },
+      get () { return document.querySelector('#video').videoWidth },
     },
     videoHeight: {
       cache: false,
-      get () { return document.querySelector('video').videoHeight },
+      get () { return document.querySelector('#video').videoHeight },
     },
     //
   },
@@ -606,8 +599,8 @@ const app = new Vue({
       }
     },
     //
-    play () { document.querySelector('video').play(); this.showMessage('Play') },
-    pause () { document.querySelector('video').pause(); this.showMessage('Pause') },
+    play () { document.querySelector('#video').play(); this.showMessage('Play') },
+    pause () { document.querySelector('#video').pause(); this.showMessage('Pause') },
     forward () { this.currentTime = Math.min(this.duration, this.currentTime + this.skipSeconds) },
     backward () { this.currentTime = Math.max(this.currentTime - this.skipSeconds, 0) },
     // volumeUp () { this.volume = Math.min(1.0, this.volume + 0.1); this.showMessage(`Volume ${this.volume.toFixed(1)}`) },
@@ -683,7 +676,7 @@ const app = new Vue({
     async setQueuedItem (queuedItem) {
       this.activePlaylistId = queuedItem.playlistId
       this.activeItemId = queuedItem.itemId
-      await new Promise(resolve => document.querySelector('video').onloadeddata = resolve)
+      await new Promise(resolve => document.querySelector('#video').onloadeddata = resolve)
       this.currentTime = queuedItem.currentTime
       this.volume = queuedItem.volume
       this.playbackRate = queuedItem.playbackRate
