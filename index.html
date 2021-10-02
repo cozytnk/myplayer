@@ -155,8 +155,8 @@ body:hover .controls:hover {
 }
 
 .message {
-  position: fixed; top: var(--header-height); left: 0;
-  padding: 10px 10px 10px 20px;
+  position: fixed; top: calc(var(--header-height) + 20px); left: 0;
+  padding: 10px 20px;
   background-color: #000;
   border-radius: 0 4px 4px 0;
   font-size: 16px;
@@ -610,8 +610,10 @@ const app = new Vue({
     pause () { document.querySelector('video').pause(); this.showMessage('Pause') },
     forward () { this.currentTime = Math.min(this.duration, this.currentTime + this.skipSeconds) },
     backward () { this.currentTime = Math.max(this.currentTime - this.skipSeconds, 0) },
-    volumeUp () { this.volume = Math.min(1.0, this.volume + 0.1); this.showMessage(`Volume ${this.volume.toFixed(1)}`) },
-    volumeDown () { this.volume = Math.max(0.0, this.volume - 0.1); this.showMessage(`Volume ${this.volume.toFixed(1)}`) },
+    // volumeUp () { this.volume = Math.min(1.0, this.volume + 0.1); this.showMessage(`Volume ${this.volume.toFixed(1)}`) },
+    // volumeDown () { this.volume = Math.max(0.0, this.volume - 0.1); this.showMessage(`Volume ${this.volume.toFixed(1)}`) },
+    volumeUp () { this.volume = Math.min(1.0, this.volume + 0.1); this.showMessage(`Volume ${Math.min(1.0, this.volume + 0.1).toFixed(1)}`) },
+    volumeDown () { this.volume = Math.max(0.0, this.volume - 0.1); this.showMessage(`Volume ${Math.max(0.0, this.volume - 0.1).toFixed(1)}`) },
     toNext () {
       const i = this.items.findIndex(item => item.id === this.activeItemId)
       if (this.loop === 2) {
