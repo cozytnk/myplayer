@@ -93,7 +93,7 @@ const crawl = async (dirpathes) => {
       dirname: dirpath.match(/([^\/]+)$/)?.[1],
       fileitems: dirents
         .filter(dirent => dirent.isFile())
-        .filter(dirent => /^[^\.].+\.mp[34]$/i.test(dirent.name))
+        .filter(dirent => /^[^\.].+\.(mp3|mp4|wav)$/i.test(dirent.name))
         .map(dirent => ({
           dirpath,
           filename: dirent.name,

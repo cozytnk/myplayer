@@ -162,10 +162,12 @@ body:hover .controls:hover {
   font-size: 16px;
   opacity: 0;
   transition: opacity 1s;
+  transition-delay: 2s;
 }
 .message.visible {
   opacity: 1;
   transition: opacity 0s;
+  transition-delay: 0s;
 }
 
 .move-win {
@@ -242,7 +244,7 @@ select {
     <!-- <webview class="webitem lyrics" ref="webview"
       src="https://utaten.com/lyric/me16060963/"
     ></webview> -->
-    <!-- <div class="comment"></div> -->
+    <!-- <canvas id="comment"></canvas> -->
     <div v-if="loading" style="display: flex; place-items: center;">
       <div class="loader"></div>
     </div>
@@ -300,7 +302,7 @@ select {
       <div class="list">
         <div class="item" v-for="playlist in filteredPlaylists" :key="playlist.id"
           :class="{ active: playlist.id === activePlaylistId }"
-          @click="activePlaylistId = playlist.id"
+          @click="activePlaylistId = playlist.id; activePanel = 'items'"
         >
           <span class="material-icons" style="font-size: 18px;">folder</span>
           <span>{{ playlist.title || 'no title' }}</span>
