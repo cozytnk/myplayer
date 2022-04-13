@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu, MenuItem, shell, session, clipboard, screen } = require('electron')
+const { app, BrowserWindow, ipcMain, Tray, Menu, MenuItem, shell, session, clipboard, screen, globalShortcut } = require('electron')
 const fs = require('fs')
 
 const { ElectronBlocker } = require('@cliqz/adblocker-electron')
@@ -24,26 +24,24 @@ const iconPath = app.isPackaged ?
   `${__dirname}/assets/Movie icon -16x16-fff.png`
 : `${__dirname}/assets/Movie icon -16x16-tomato.png`
 
+const BOTTOM_OFFSET = 50
+
 
 const loadSettings = async () => {
   const defaultSettingsText = `
-try {
-  module.exports = {
-    importDirectories: [
-      '~/Movies',
-    ],
-  }
-} catch {}
+try { module.exports = {
+  importDirectories: [
+    '~/Movies',
+  ],
+} } catch {}
 
-try {
-  window.settings = {
-    playlistFilters: [
-      { id: 'Movies', test: /\\/Movies/ },
-    ],
-    parseFileitem: item => item,
-    parseDiritem: item => item,
-  }
-} catch {}
+try { window.settings = {
+  playlistFilters: [
+    { id: 'Movies', test: /\\/Movies/ },
+  ],
+  parseFileitem: item => item,
+  parseDiritem: item => item,
+} } catch {}
 `
 
   // create app directory if not exist
@@ -239,12 +237,23 @@ app.on('ready', () => {
     .on('win.toBottom', () => {
       const { x, y, width, height } = win.getBounds()
       const { x: displayX, y: displayY, width: displayWidth, height: displayHeight } = screen.getDisplayNearestPoint({ x, y }).workArea
-      win.setBounds({ x, y: displayY + displayHeight - height, width, height }, true)
+      win.setBounds({ x, y: displayY + displayHeight - height - BOTTOM_OFFSET, width, height }, true)
     })
-    .on('win.setWidth', () => {
+    .on('win.setWidth', (event, rate) => {
+      if (!(rate && 0 < rate && rate <= 1)) return;
       const { x, y, width, height } = win.getBounds()
       const { x: displayX, y: displayY, width: displayWidth, height: displayHeight } = screen.getDisplayNearestPoint({ x, y }).workArea
-      win.setSize(Math.round(displayWidth / 2), Math.round(height * (displayWidth / 2) / width), true)
+      // win.setSize(Math.round(displayWidth / 2), Math.round(height * (displayWidth / 2) / width), true)
+      const newWidth = Math.round(displayWidth * rate)
+      const newHeight = Math.round(height * newWidth / width)
+      const newX = x + newWidth > displayX + displayWidth ? displayX + displayWidth - newWidth : x
+      const newY = y + newHeight > displayY + displayHeight - BOTTOM_OFFSET ? displayY + displayHeight - BOTTOM_OFFSET - newHeight : y
+      win.setBounds({
+        x: newX,
+        y: newY,
+        width: newWidth,
+        height: newHeight,
+      }, true)
     })
 
   tray.on('click', () => win.isVisible() ? win.hide() : win.show())
@@ -258,5 +267,14 @@ app.on('ready', () => {
 app.on('quit', () => {
   console.log('@app.quit')
   // session.defaultSession.clearCache(() => {})
+})
+
+app.whenReady().then(() => {
+  // globalShortcut.register('Alt+S', () => win.show()) // focus, and show if hidden
+  globalShortcut.register('Alt+S', () => {
+    win.isVisible() && win.isFocused() ? win.hide()
+    // : win.isVisible() ? win.focus()
+    : win.show()
+  })
 })
 
